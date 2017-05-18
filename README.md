@@ -39,3 +39,8 @@ Implemented:
 	
 	- i have setup a nodejs-demo project, see my repo https://github.com/numenshane/docker-nodejs-demo
 	- i have fully automated the demo dev-test-staging-prod using jenkins pipeline plugin
+
+Problem:
+  - introduce template file, like aws cloudformation for coding infrastructure
+    - how to manipulate each specifical proj's testing and deploying need when automating ci-cd pipeline 
+ - ansible playbook compatible with multi version OS, func like aws OpsWorks using Chef
