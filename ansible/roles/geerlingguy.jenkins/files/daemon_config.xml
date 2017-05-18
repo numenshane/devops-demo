@@ -54,6 +54,7 @@ if [ &quot;$flag&quot; = &quot;true&quot; ]; then
     curl -s http://$consul_url/v1/kv/$node/$branch/k8s-svc.json?raw &gt; k8s-svc.json
     # adding $version suffix to rc name, also replace docker images name suffix &quot;prod&quot; to &quot;$version&quot;
     sed -i &quot;s/$project_name/$node/g&quot; k8s-rc.json
+    sed -i &quot;s/$node:/$project_name:/g&quot; k8s-rc.json
     sed -i &quot;s/prod/$version/g&quot; k8s-rc.json
     # adding $version suffix to svc name
     sed -i &quot;s/$project_name/$node/g&quot; k8s-svc.json
