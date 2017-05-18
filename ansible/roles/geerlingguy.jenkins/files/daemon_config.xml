@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project>
+  <actions/>
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties/>
+  <scm class="hudson.scm.NullSCM"/>
+  <canRoam>true</canRoam>
+  <disabled>false</disabled>
+  <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
+  <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
+  <triggers>
+    <jenkins.triggers.ReverseBuildTrigger>
+      <spec></spec>
+      <upstreamProjects>docker-nodejs-demo, </upstreamProjects>
+      <threshold>
+        <name>FAILURE</name>
+        <ordinal>2</ordinal>
+        <color>RED</color>
+        <completeBuild>true</completeBuild>
+      </threshold>
+    </jenkins.triggers.ReverseBuildTrigger>
+    <hudson.triggers.TimerTrigger>
+      <spec>H/2 * * * *</spec>
+    </hudson.triggers.TimerTrigger>
+  </triggers>
+  <concurrentBuild>false</concurrentBuild>
+  <builders>
+    <hudson.tasks.Shell>
+      <command>#!/bin/bash 
+consul_url=&quot;192.168.100.3:8500&quot;
+branch=&quot;master&quot;
+KUBE_MASTER_HTTP=&quot;http://192.168.100.2:8080&quot;
+nodes=()
+for node in $(curl -s http://$consul_url/v1/kv/?keys|awk -F &apos;[&apos; &apos;{print$2}&apos;|awk -F &apos;]&apos; &apos;{print$1}&apos;|awk -F &apos;,&apos; &apos;{for(i=1;i&lt;=NF;i++)print $i}&apos;
+)
+do
+  consul_node=$(echo $node|awk -F &apos;&quot;&apos; &apos;{print$2}&apos;|awk -F &apos;/&apos; &apos;{print$1}&apos;)
+  node_exist=$(echo ${nodes[*]}|grep &quot;$consul_node&quot;|wc -l)
+  if [ $node_exist -eq 0 ];then
+   nodes=(${nodes[@]} $consul_node)
+  fi  
+done
+for node in ${nodes[*]};
+do
+flag=$(curl -s http://$consul_url/v1/kv/$node/deploy.flag?raw)
+if [ &quot;$flag&quot; = &quot;true&quot; ]; then
+    project_name=&apos;&apos;
+    index=0
+    for name in $(echo $node|awk -F &apos;-&apos; &apos;{for(i=1;i&lt;NF;i++)print $i}&apos;);
+    do
+        if [ $index -eq 0 ];then
+        project_name=&quot;${name}&quot;
+        else
+        project_name=&quot;$project_name-${name}&quot;
+        fi
+        let index++
+    done
+    version=$(echo $node|awk -F &apos;-&apos; &apos;{print$NF}&apos;)
+    echo $project_name
+    echo &quot;+++ put $node to kube-apiserver +++&quot;
+    # get rc svc json file
+    curl -s http://$consul_url/v1/kv/$node/$branch/k8s-rc.json?raw &gt; k8s-rc.json
+    curl -s http://$consul_url/v1/kv/$node/$branch/k8s-svc.json?raw &gt; k8s-svc.json
+    # adding $version suffix to rc name, also replace docker images name suffix &quot;prod&quot; to &quot;$version&quot;
+    sed -i &quot;s/$project_name/$node/g&quot; k8s-rc.json
+    sed -i &quot;s/prod/$version/g&quot; k8s-rc.json
+    # adding $version suffix to svc name
+    sed -i &quot;s/$project_name/$node/g&quot; k8s-svc.json
+    sed -i &quot;s/prod/$version/g&quot; k8s-svc.json
+    # then post request to apiserver
+    curl -sX POST $KUBE_MASTER_HTTP/api/v1/namespaces/default/replicationcontrollers -d @k8s-rc.json -H &quot;Content-type: application/json&quot;
+    curl -sX POST $KUBE_MASTER_HTTP/api/v1/namespaces/default/services -d @k8s-svc.json -H &quot;Content-type: application/json&quot;
+    # reset deploy flag
+    curl -sX PUT http://$consul_url/v1/kv/$node/deploy.flag -d&quot;finished deploy so false again, redeploy then set to true&quot;
+
+    # real state and desire state reconciliation # not imp here
+    # for demo: just make sure no existent same nodejs-demo service running
+fi
+
+done</command>
+    </hudson.tasks.Shell>
+  </builders>
+  <publishers/>
+  <buildWrappers/>
+</project>

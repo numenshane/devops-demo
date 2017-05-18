@@ -1,0 +1,8 @@
+---
+ consul_name: consul_0.8.3_linux_amd64
+ consul_version: 0.8.3
+ consul_dir: "/opt/consul"
+ node_ip: 192.168.100.3
+ bind_ip: 192.168.100.3
+ dc: test
+

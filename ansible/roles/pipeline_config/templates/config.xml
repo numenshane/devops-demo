@@ -1,0 +1,111 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<flow-definition plugin="workflow-job@2.10">
+  <description></description>
+  <keepDependencies>false</keepDependencies>
+  <properties>
+    <org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+      <triggers/>
+    </org.jenkinsci.plugins.workflow.job.properties.PipelineTriggersJobProperty>
+  </properties>
+  <definition class="org.jenkinsci.plugins.workflow.cps.CpsFlowDefinition" plugin="workflow-cps@2.30">
+         <script>node {
+    stage('Build'){
+        sh '''#!/bin/bash
+        if [ -d {{project_name}} ];then
+            rm -rf {{project_name}}
+        fi
+        git clone {{repo_url}}/{{project_name}}/
+        cd {{project_name}}
+        echo ++++++$JOB_NAME, $BUILD_NUMBER++++++
+        time=`date +%d%H%M%s`
+        test_image_name=192.168.100.3:5000/nodejs-demo:${time}
+        image_name=192.168.100.3:5000/nodejs-demo:test
+        docker build -t $test_image_name .
+        if [[ $? -eq 0 ]]; then
+            docker tag $test_image_name $image_name
+            docker push $image_name  
+	    docker rmi $image_name
+            docker rmi $test_image_name
+        fi
+        exit 0'''
+    }
+    stage('Test'){
+      sh '''#!/bin/bash
+        echo ++++++$JOB_NAME, $BUILD_NUMBER++++++
+        name=`date +%d%H%M%s`
+        set flag=0
+        image_name=192.168.100.3:5000/nodejs-demo:test
+        tested_image_name=192.168.100.3:5000/nodejs-demo:prod
+
+        docker run -P -d --name $name $image_name
+        port=`docker inspect -f {{"'"}}{{'{{(index (index .NetworkSettings.Ports "8088/tcp") 0).HostPort}}'}}{{"'"}} $name`
+        echo wait container start 5 seconds, start test service
+        sleep 5
+        echo curl -s http://localhost:$port
+        resp=`curl -s http://localhost:$port`
+
+        if [ $? -ne 0 ]; then
+            echo test failed, resp=${resp}  $flag=1
+        fi
+
+        echo test suc, resp=${resp}
+
+        docker stop `docker ps -f ancestor=$image_name -q -a`  
+	docker rm `docker ps -f ancestor=$image_name -q -a`
+
+        docker tag $image_name $tested_image_name
+        docker push $tested_image_name
+        docker rmi $image_name  
+	docker rmi $tested_image_name
+
+        exit $flag'''
+
+        
+    }
+    stage('Staging'){
+      sh '''echo ++++++$JOB_NAME, $BUILD_NUMBER++++++
+
+        consulFile=git2consul-k8s-nodejs-demo-${BUILD_NUMBER}.json
+
+        consul_repo_name={{project_name}}-${BUILD_NUMBER}
+
+        gitRepo={{repo_url}}/{{project_name}}.git
+
+        branch=master
+
+        tested_image_name=192.168.100.3:5000/nodejs-demo:prod
+
+        #docker login -u admin -p password -e numenshane@gmail.com 192.168.100.3:5000
+        docker pull ${tested_image_name}
+        docker tag ${tested_image_name} 192.168.100.3:5000/nodejs-demo:${BUILD_NUMBER}
+        docker push 192.168.100.3:5000/nodejs-demo:${BUILD_NUMBER}
+        cat &lt;&lt; EOF &gt; &quot;$consulFile&quot;
+        {
+          &quot;version&quot;: &quot;1.0&quot;,
+          &quot;no_daemon&quot;: &quot;true&quot;,
+          &quot;repos&quot; : [{
+                &quot;name&quot; : &quot;$consul_repo_name&quot;,
+                &quot;url&quot; : &quot;$gitRepo&quot;,
+                &quot;support_tags&quot;: true,
+                &quot;branches&quot; : [&quot;$branch&quot;],
+                &quot;hooks&quot;: [{
+                        &quot;type&quot; : &quot;polling&quot;,
+                        &quot;interval&quot; : &quot;1&quot;
+            }]
+          }]
+        }
+EOF
+
+        # above adding: source_root: $serviceFile_relative_path,
+
+        git2consul --endpoint 192.168.100.3 --port 8500 --config-file $consulFile -n
+
+        # create deploy flag for admin /ops gurantee
+        curl -sX PUT http://192.168.100.3:8500/v1/kv/${consul_repo_name}/deploy.flag -d "false, waiting to set true"'''
+
+    }
+}</script>
+    <sandbox>true</sandbox>
+  </definition>
+  <triggers/>
+</flow-definition>

@@ -1,0 +1,31 @@
+From bottom to top design thought:
+	1 infrastructure auto-provision with vagrant
+		VM cluster in a sinle LAN, centos7 VMs' hostname with build/test/staing/prod tag supporting isolated dev-ops env
+	2 Q/A platform setup&config with ansible playbook
+		java sdk& platform service setup: 
+		ci-cd part: java role, docker role, registry role, jenkins role,consul role, 
+		cluster system part: k8s role, net suilt flannel role, flocker role
+	3 dev-ops for business project with jenkins/docker/consul/clustering system
+		project side: bash scripts for auto-create jenkins vars for ansible auto-manipulate template and jobs creation
+		scm side: 
+			app build file -> Dockerfile, such as start command, nat port, resource quota, mounted host dir, etc
+			app resource file -> replication controller (rc.yml) service proxy(svc.yml)
+		CI side: 
+			jenkins pipeline created by ansible-playbook role and template functionality
+			pipeline contain build-test-staging stage, 
+			prod stage is substituted by one common service (inside watch certain consul k/v and then push to cluster system using restful api
+	4 application non-functional requirement
+		monitor/logs: 
+			container logs using docker logs cli or restful api, then local agent using syslog/scribe/flume push to prometheus/kafka/elastic search
+		high availability: 
+			replication controller by k8s (replicas num, for stateful service using shared storage suppported by docker storage plugin
+			
+		state reconciliation imp version control with blue-green deployment && rolling-update
+		elastic LB with self-routing, app's health && latency check, resource monitor
+		auto-scaling up/down using aws auto-scaling policy with cloud watch
+		
+	public cloud : highly self on-demand, more care about universality more fundamental, scenario like huge capacity and workload
+		security like IAM to enalbe you to control who can do what under what condition in your account
+		cross DC HA, latency and bandwith, lambda with apiGateway
+	private cloud: more specific to certain domain, build and use efficiency and automation degree, migration and devops consideration
+

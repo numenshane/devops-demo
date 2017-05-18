@@ -1,0 +1,20 @@
+- name: Directory is present
+  file:
+    path=/data/registry
+    state=directory
+  tags: [registry]
+
+- name: Debian docker-py is present
+  pip:
+    name: docker-py
+    version: 1.10.3
+    state: present
+  tags: [registry]
+
+- name: Container is running
+  docker_container:
+    name=registry
+    image=registry
+    ports=5000:5000
+    volumes=/data/registry:/tmp/registry
+  tags: [registry]

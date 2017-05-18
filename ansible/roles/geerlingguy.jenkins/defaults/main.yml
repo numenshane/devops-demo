@@ -1,0 +1,78 @@
+---
+# Optional method of pinning a specific version of Jenkins and/or overriding the
+# default Jenkins packaging URL.
+# jenkins_version: "1.644"
+# jenkins_pkg_url: "https://www.example.com"
+
+jenkins_connection_delay: 5
+jenkins_connection_retries: 60
+jenkins_home: /var/lib/jenkins
+jenkins_hostname: localhost
+jenkins_http_port: 8080
+jenkins_jar_location: /opt/jenkins-cli.jar
+jenkins_plugins: []
+jenkins_url_prefix: ""
+jenkins_java_options: "-Djenkins.install.runSetupWizard=false"
+
+jenkins_admin_username: admin
+jenkins_admin_password: admin
+jenkins_admin_password_file: ""
+
+jenkins_init_changes:
+  - option: "JENKINS_ARGS"
+    value: "--prefix={{ jenkins_url_prefix }}"
+  - option: "{{ jenkins_java_options_env_var }}"
+    value: "{{ jenkins_java_options }}"
+
+jenkins_path: /var/lib/jenkins
+jenkins_url: http://localhost
+jenkins_port: 8080
+user_name: admin
+password: admin
+pipeline_plugins:
+ - "ace-editor"
+ - "authentication-tokens"
+ - "bouncycastle-api"
+ - "branch-api"
+ - "cloudbees-folder"
+ - "credentials-binding"
+ - "credentials"
+ - "display-url-api"
+ - "docker-commons"
+ - "docker-workflow"
+ - "durable-task"
+ - "git-client"
+ - "git-server"
+ - "handlebars"
+ - "icon-shim"
+ - "jquery-detached"
+ - "mailer"
+ - "momentjs"
+ - "pipeline-build-step"
+ - "pipeline-graph-analysis"
+ - "pipeline-input-step"
+ - "pipeline-milestone-step"
+ - "pipeline-model-api"
+ - "pipeline-model-declarative-agent"
+ - "pipeline-model-definition"
+ - "pipeline-model-extensions"
+ - "pipeline-rest-api"
+ - "pipeline-stage-step"
+ - "pipeline-stage-tags-metadata"
+ - "pipeline-stage-view"
+ - "plain-credentials"
+ - "scm-api"
+ - "script-security"
+ - "ssh-credentials"
+ - "structs"
+ - "workflow-aggregator"
+ - "workflow-api"
+ - "workflow-basic-steps"
+ - "workflow-cps-global-lib"
+ - "workflow-cps"
+ - "workflow-durable-task-step"
+ - "workflow-job"
+ - "workflow-multibranch"
+ - "workflow-scm-step"
+ - "workflow-step-api"
+ - "workflow-support"

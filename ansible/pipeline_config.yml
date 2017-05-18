@@ -1,0 +1,8 @@
+- hosts: devtest 
+  remote_user: vagrant
+  become: yes
+  vars:
+   repo_url: "{{repo_url}}"
+   project_name: "{{project_name}}"
+  roles:
+    - pipeline_config

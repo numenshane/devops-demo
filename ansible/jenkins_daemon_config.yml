@@ -1,0 +1,7 @@
+- hosts: devtest 
+  remote_user: vagrant
+  become: yes
+  vars:
+   project_name: "prod_daemon"
+  roles:
+    - production_daemon_config

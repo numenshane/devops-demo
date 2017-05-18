@@ -1,0 +1,17 @@
+- hosts: devtest 
+  remote_user: vagrant
+  become: yes
+  vars_files:
+   - vars/consul.yml
+   - vars/daemon_project.yml
+  roles:
+    - pip
+    - role: geerlingguy.java
+      when: "ansible_os_family == 'RedHat'"
+      java_packages:
+        - java-1.8.0-openjdk
+    - git
+    - consul
+    - geerlingguy.docker
+    - geerlingguy.jenkins
+    - registry

@@ -1,0 +1,14 @@
+---
+- name: Install Python Jenkins Module
+  pip: 
+    name: python-jenkins 
+
+- name: Create Production Daemon Project
+  jenkins_job:
+     config: "{{ lookup('file', 'files/daemon_config.xml') }}"
+     state: present
+     name: "{{daemon_project_name}}"
+     user: "{{jenkins_admin_username}}"
+     password: "{{jenkins_admin_password}}"
+     url: "http://{{jenkins_hostname}}:{{jenkins_http_port}}"
+  ignore_errors: true

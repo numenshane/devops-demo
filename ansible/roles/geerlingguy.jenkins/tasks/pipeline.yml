@@ -1,0 +1,16 @@
+---
+- name: Add Jenkins User To docker and root 
+  user:
+    name: jenkins
+    groups: docker,root
+    append: yes
+
+- name: Copy Plugins
+  copy: src=plugins/{{item}}.jpi dest={{jenkins_home}}/plugins
+  with_items:
+     - "{{pipeline_plugins}}"
+
+- name: Restart Jenkins
+  systemd: 
+    name: jenkins
+    state: restarted  

@@ -1,0 +1,5 @@
+- hosts: prod
+  remote_user: vagrant
+  become: yes
+  roles:
+    #- geerlingguy.docker
