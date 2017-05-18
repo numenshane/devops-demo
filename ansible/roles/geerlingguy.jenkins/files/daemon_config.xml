@@ -10,16 +10,6 @@
   <blockBuildWhenDownstreamBuilding>false</blockBuildWhenDownstreamBuilding>
   <blockBuildWhenUpstreamBuilding>false</blockBuildWhenUpstreamBuilding>
   <triggers>
-    <jenkins.triggers.ReverseBuildTrigger>
-      <spec></spec>
-      <upstreamProjects>docker-nodejs-demo, </upstreamProjects>
-      <threshold>
-        <name>FAILURE</name>
-        <ordinal>2</ordinal>
-        <color>RED</color>
-        <completeBuild>true</completeBuild>
-      </threshold>
-    </jenkins.triggers.ReverseBuildTrigger>
     <hudson.triggers.TimerTrigger>
       <spec>H/2 * * * *</spec>
     </hudson.triggers.TimerTrigger>

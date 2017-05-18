@@ -18,8 +18,8 @@
         cd {{project_name}}
         echo ++++++$JOB_NAME, $BUILD_NUMBER++++++
         time=`date +%d%H%M%s`
-        test_image_name=192.168.100.3:5000/nodejs-demo:${time}
-        image_name=192.168.100.3:5000/nodejs-demo:test
+        test_image_name=192.168.100.3:5000/{{project_name}}:${time}
+        image_name=192.168.100.3:5000/{{project_name}}:test
         docker build -t $test_image_name .
         if [[ $? -eq 0 ]]; then
             docker tag $test_image_name $image_name
@@ -34,8 +34,8 @@
         echo ++++++$JOB_NAME, $BUILD_NUMBER++++++
         name=`date +%d%H%M%s`
         set flag=0
-        image_name=192.168.100.3:5000/nodejs-demo:test
-        tested_image_name=192.168.100.3:5000/nodejs-demo:prod
+        image_name=192.168.100.3:5000/{{project_name}}:test
+        tested_image_name=192.168.100.3:5000/{{project_name}}:prod
 
         docker run -P -d --name $name $image_name
         port=`docker inspect -f {{"'"}}{{'{{(index (index .NetworkSettings.Ports "8088/tcp") 0).HostPort}}'}}{{"'"}} $name`
@@ -65,7 +65,7 @@
     stage('Staging'){
       sh '''echo ++++++$JOB_NAME, $BUILD_NUMBER++++++
 
-        consulFile=git2consul-k8s-nodejs-demo-${BUILD_NUMBER}.json
+        consulFile=git2consul-k8s-{{project_name}}-${BUILD_NUMBER}.json
 
         consul_repo_name={{project_name}}-${BUILD_NUMBER}
 
@@ -73,12 +73,12 @@
 
         branch=master
 
-        tested_image_name=192.168.100.3:5000/nodejs-demo:prod
+        tested_image_name=192.168.100.3:5000/{{project_name}}:prod
 
         #docker login -u admin -p password -e numenshane@gmail.com 192.168.100.3:5000
         docker pull ${tested_image_name}
-        docker tag ${tested_image_name} 192.168.100.3:5000/nodejs-demo:${BUILD_NUMBER}
-        docker push 192.168.100.3:5000/nodejs-demo:${BUILD_NUMBER}
+        docker tag ${tested_image_name} 192.168.100.3:5000/{{project_name}}:${BUILD_NUMBER}
+        docker push 192.168.100.3:5000/{{project_name}}:${BUILD_NUMBER}
         cat &lt;&lt; EOF &gt; &quot;$consulFile&quot;
         {
           &quot;version&quot;: &quot;1.0&quot;,

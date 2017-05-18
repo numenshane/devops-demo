@@ -5,7 +5,7 @@ yum install etcd.x86_64 net-tools.x86_64 -y
 
 # docker part
 # add --insecure-registry to docker config
-sed -i 's/#INSECURE_REGISTRY/INSECURE_REGISTRY/g' /etc/sysconfig/docker
+sed -i 's/# INSECURE_REGISTRY/INSECURE_REGISTRY/g' /etc/sysconfig/docker
 sed -i 's/--insecure-registry/--insecure-registry 192.168.100.3:5000/g' /etc/sysconfig/docker
 
 # ectd part
