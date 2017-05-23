@@ -14,12 +14,12 @@
         if [ -d {{project_name}} ];then
             rm -rf {{project_name}}
         fi
-        git clone {{repo_url}}/{{project_name}}/
+        git clone {{repo_url}}
         cd {{project_name}}
         echo ++++++$JOB_NAME, $BUILD_NUMBER++++++
         time=`date +%d%H%M%s`
-        test_image_name=192.168.100.3:5000/{{project_name}}:${time}
-        image_name=192.168.100.3:5000/{{project_name}}:test
+        test_image_name={{docker_registry}}/{{project_name}}:${time}
+        image_name={{docker_registry}}/{{project_name}}:test
         docker build -t $test_image_name .
         if [[ $? -eq 0 ]]; then
             docker tag $test_image_name $image_name
@@ -34,15 +34,15 @@
         echo ++++++$JOB_NAME, $BUILD_NUMBER++++++
         name=`date +%d%H%M%s`
         set flag=0
-        image_name=192.168.100.3:5000/{{project_name}}:test
-        tested_image_name=192.168.100.3:5000/{{project_name}}:prod
+        image_name={{docker_registry}}/{{project_name}}:test
+        tested_image_name={{docker_registry}}/{{project_name}}:prod
 
         docker run -P -d --name $name $image_name
         port=`docker inspect -f {{"'"}}{{'{{(index (index .NetworkSettings.Ports "8088/tcp") 0).HostPort}}'}}{{"'"}} $name`
         echo wait container start 5 seconds, start test service
         sleep 5
-        echo curl -s http://localhost:$port
-        resp=`curl -s http://localhost:$port`
+        echo curl -s http://localhost:$port{{check_uri}}
+        resp=`curl -s http://localhost:$port{{check_uri}}`
 
         if [ $? -ne 0 ]; then
             echo test failed, resp=${resp}  $flag=1
@@ -69,16 +69,15 @@
 
         consul_repo_name={{project_name}}-${BUILD_NUMBER}
 
-        gitRepo={{repo_url}}/{{project_name}}.git
+        gitRepo={{repo_url}}
 
         branch=master
 
-        tested_image_name=192.168.100.3:5000/{{project_name}}:prod
+        tested_image_name={{docker_registry}}/{{project_name}}:prod
 
-        #docker login -u admin -p password -e numenshane@gmail.com 192.168.100.3:5000
         docker pull ${tested_image_name}
-        docker tag ${tested_image_name} 192.168.100.3:5000/{{project_name}}:${BUILD_NUMBER}
-        docker push 192.168.100.3:5000/{{project_name}}:${BUILD_NUMBER}
+        docker tag ${tested_image_name} {{docker_registry}}/{{project_name}}:${BUILD_NUMBER}
+        docker push {{docker_registry}}/{{project_name}}:${BUILD_NUMBER}
         cat &lt;&lt; EOF &gt; &quot;$consulFile&quot;
         {
           &quot;version&quot;: &quot;1.0&quot;,
@@ -98,10 +97,10 @@ EOF
 
         # above adding: source_root: $serviceFile_relative_path,
 
-        git2consul --endpoint 192.168.100.3 --port 8500 --config-file $consulFile -n
+        git2consul --endpoint {{consul_ip}} --port {{consul_port}} --config-file $consulFile -n
 
         # create deploy flag for admin /ops gurantee
-        curl -sX PUT http://192.168.100.3:8500/v1/kv/${consul_repo_name}/deploy.flag -d "false, waiting to set true"'''
+        curl -sX PUT http://{{consul_ip}}:{{consul_port}}/v1/kv/${consul_repo_name}/deploy.flag -d "false, waiting to set true"'''
 
     }
 }</script>

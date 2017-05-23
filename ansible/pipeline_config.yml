@@ -4,5 +4,8 @@
   vars:
    repo_url: "{{repo_url}}"
    project_name: "{{project_name}}"
+   docker_registry: "{{docker_registry}}"
+   consul_url: "{{consul_ip}}"
+   consul_port: "{{consul_port}}"
   roles:
     - pipeline_config
