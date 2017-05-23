@@ -7,5 +7,6 @@
    docker_registry: "{{docker_registry}}"
    consul_url: "{{consul_ip}}"
    consul_port: "{{consul_port}}"
+   expose_port: "{{expose_port}}"
   roles:
     - pipeline_config

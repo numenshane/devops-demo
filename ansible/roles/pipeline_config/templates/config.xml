@@ -38,7 +38,7 @@
         tested_image_name={{docker_registry}}/{{project_name}}:prod
 
         docker run -P -d --name $name $image_name
-        port=`docker inspect -f {{"'"}}{{'{{(index (index .NetworkSettings.Ports "8088/tcp") 0).HostPort}}'}}{{"'"}} $name`
+	port=`docker inspect -f {{"'"}}{{'{{(index (index .NetworkSettings.Ports'}} "{{expose_port}}/tcp") 0).HostPort}}{{"'"}} $name`
         echo wait container start 5 seconds, start test service
         sleep 5
         echo curl -s http://localhost:$port{{check_uri}}
