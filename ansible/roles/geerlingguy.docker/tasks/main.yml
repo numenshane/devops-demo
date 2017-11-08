@@ -9,7 +9,7 @@
   package: name={{ docker_package }} state=present
 
 - name: add --insecure-registry 
-  shell: sed -i 's/ExecStart=\/usr\/bin\/dockerd/ExecStart=\/usr\/bin\/dockerd --insecure-registry 192.168.100.3:5000/g' /usr/lib/systemd/system/docker.service 
+  shell: sed -i 's/ExecStart=\/usr\/bin\/dockerd-current/ExecStart=\/usr\/bin\/dockerd-current --insecure-registry 192.168.100.3:5000/g' /usr/lib/systemd/system/docker.service 
 
 - name: Ensure Docker is started and enabled at boot.
   service:
